@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Приём UDP-пакетов от смартфона + ответы discovery/ping. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+    <!--
+      SYSTEM_ALERT_WINDOW НЕ нужен: оверлей рисуется из AccessibilityService
+      с типом TYPE_ACCESSIBILITY_OVERLAY, который имеет особый статус и не требует
+      разрешения "рисовать поверх других окон". Это упрощает настройку для пользователя.
+    -->
+
+    <application
+        android:allowBackup="true"
+        android:icon="@drawable/ic_launcher"
+        android:label="@string/app_name"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AirMouse">
+
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!--
+          Служба доступности: единственный легальный способ без Root рисовать
+          курсор поверх всех окон и эмулировать нажатия (dispatchGesture) на Android TV.
+          Привязка через BIND_ACCESSIBILITY_SERVICE разрешает только системе запускать службу.
+        -->
+        <service
+            android:name=".AirMouseAccessibilityService"
+            android:exported="false"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/air_mouse_accessibility_service_config" />
+        </service>
+
+    </application>
+
+</manifest>

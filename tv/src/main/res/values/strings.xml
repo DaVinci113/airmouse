@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Air Mouse — Сервер</string>
+
+    <!-- Главный экран -->
+    <string name="service_status">Служба доступности</string>
+    <string name="service_off">Выключена — Air Mouse не работает</string>
+    <string name="service_on">Включена — приём команд активен</string>
+    <string name="enable_service">Включить службу</string>
+    <string name="network_info">Сеть</string>
+    <string name="ip_unknown">IP-адрес: определяется…</string>
+    <string name="ip_format">IP-адрес: %1$s (порт %2$d)</string>
+    <string name="listening">Слушаю UDP-порт %1$d</string>
+
+    <string name="instructions_title">Как пользоваться</string>
+    <string name="instructions_body">
+        1) Установите клиент Air Mouse на телефон.\n
+        2) Убедитесь, что ТВ и телефон в одной Wi-Fi сети.\n
+        3) На телефоне нажмите «Поиск ТВ» или введите IP-адрес ниже.\n
+        4) Держите телефон как пульт — движение кистью перемещает курсор.
+    </string>
+
+    <string name="accessibility_service_description">
+        Air Mouse: рисует курсор поверх интерфейса и эмулирует нажатия/скролл
+        по командам со смартфона. Не читает содержимое окон и не собирает данные.
+    </string>
+</resources>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Air Mouse</string>
+    <string name="settings_title">Настройки</string>
+
+    <!-- Подключение -->
+    <string name="connection">Подключение</string>
+    <string name="ip_hint">IP-адрес ТВ (например, 192.168.1.10)</string>
+    <string name="connect_manual">Подключиться</string>
+    <string name="discover">Поиск ТВ</string>
+    <string name="discovering">Поиск…</string>
+    <string name="discovery_empty">ТВ не найдены. Проверьте, что оба устройства в одной сети и на ТВ запущен сервер.</string>
+    <string name="status_disconnected">Не подключено</string>
+    <string name="status_connected_format">Подключено: %1$s</string>
+    <string name="ping_format">Пинг: %1$d мс</string>
+    <string name="ping_unknown">Пинг: —</string>
+
+    <!-- Управление -->
+    <string name="touchpad_hint">Держите телефон как пульт. Движение кистью перемещает курсор на ТВ.</string>
+    <string name="left_click">ЛКМ</string>
+    <string name="right_click">ПКМ</string>
+    <string name="back">Назад</string>
+    <string name="home">Домой</string>
+    <string name="scroll_up">↑</string>
+    <string name="scroll_down">↓</string>
+    <string name="recenter">Сброс центра</string>
+    <string name="settings">Настройки</string>
+
+    <!-- Настройки sensor fusion -->
+    <string name="settings_hint">Подстройте математику курсора под свою руку. Изменения применяются при возврате на главный экран.</string>
+    <string name="setting_sensitivity_x">Чувствительность по горизонтали</string>
+    <string name="setting_sensitivity_y">Чувствительность по вертикали</string>
+    <string name="setting_smoothing">Сглаживание (чем больше — тем плавнее, но дольше реакция)</string>
+    <string name="setting_deadzone">Мёртвая зона (подавление дрожания покоя)</string>
+    <string name="setting_reset">Сбросить к значениям по умолчанию</string>
+    <string name="sens_format">%1$d px/(рад/с)</string>
+    <string name="smoothing_format">α = %1$.2f</string>
+    <string name="deadzone_format">%1$.2f рад/с</string>
+
+    <!-- Ошибки -->
+    <string name="no_gyroscope">На этом устройстве нет гироскопа — air-mouse невозможен.</string>
+    <string name="invalid_ip">Введите корректный IP-адрес.</string>
+</resources>

@@ -1,0 +1,91 @@
+package com.airmouse.phone.net
+
+import com.airmouse.proto.Net
+import com.airmouse.proto.Packet
+import java.net.DatagramPacket
+
+/**
+ * Логическое соединение с выбранным ТВ.
+ *
+ * Хранит адрес точки назначения и инкапсулирует отправку типовых команд.
+ * Также реализует измерение RTT (PING/PONG) для индикатора качества связи.
+ *
+ * Соединение "stateless" в том смысле, что сервер хранит состояние курсора;
+ * клиент только шлёт события. Это упрощает восстановление после потери пакетов:
+ * потерянный MOVE = потеря микро-движения, а не рассинхронизация координат.
+ */
+class Connection(private val transport: UdpTransport) {
+
+    var device: Device? = null
+        private set
+
+    /** Подключение к найденному вручную/через discovery устройству. */
+    fun connect(device: Device) {
+        this.device = device
+    }
+
+    /** Подключение по введённому вручную IP (без discovery). */
+    fun connect(host: String) {
+        this.device = Device("", host, 0, 0)
+    }
+
+    val isConnected: Boolean get() = device != null
+    val host: String? get() = device?.host
+
+    fun move(dx: Float, dy: Float) =
+        send(Packet.Move(dx, dy))
+
+    fun tap() = send(Packet.Tap)
+    fun longPress() = send(Packet.LongPress)
+    fun back() = send(Packet.Back)
+    fun home() = send(Packet.Home)
+    fun calibrate() = send(Packet.Calibrate)
+    fun scroll(dx: Float, dy: Float) = send(Packet.Scroll(dx, dy))
+
+    private fun send(packet: Packet) {
+        val target = device ?: return
+        transport.send(target.host, Net.DEFAULT_PORT, packet)
+    }
+
+    /**
+     * Измеряет RTT до сервера. Шлёт PING с текущим значением времени и слушает
+     * PONG в отдельном потоке; результат (полный RTT, мс) возвращается через [onRttMs].
+     *
+     * Если ответа нет за [RTT_TIMEOUT_MS], возвращается -1.
+     */
+    fun measureRtt(onRttMs: (Long) -> Unit) {
+        val target = device ?: return
+        val socket = transport.socket() ?: return
+
+        Thread {
+            val stamp = System.nanoTime()
+            transport.send(target.host, Net.DEFAULT_PORT, Packet.Ping(stamp))
+
+            socket.soTimeout = RTT_TIMEOUT_MS
+            val buf = ByteArray(PacketCodec.MAX_PACKET_BYTES)
+            val incoming = DatagramPacket(buf, buf.size)
+            val ok = try {
+                socket.receive(incoming)
+                true
+            } catch (_: Throwable) {
+                false
+            }
+
+            if (!ok) {
+                onRttMs(-1L)
+                return@Thread
+            }
+            val packet = PacketCodec.decode(incoming.data.copyOfRange(0, incoming.length))
+            if (packet is Packet.Pong && packet.clientNanos == stamp) {
+                val rtt = (System.nanoTime() - stamp) / 1_000_000
+                onRttMs(rtt)
+            } else {
+                onRttMs(-1L)
+            }
+        }.also { it.isDaemon = true }.start()
+    }
+
+    private companion object {
+        const val RTT_TIMEOUT_MS = 500
+    }
+}

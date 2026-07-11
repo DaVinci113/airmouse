@@ -1,0 +1,13 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+    <path
+        android:fillColor="#1E4FD6"
+        android:pathData="M0,0 H48 V48 H0 Z" />
+    <!-- Стилизованный телевизор с курсором. -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,12 L24,34 L29,29 L33,39 L36,38 L32,28 L39,28 Z" />
+</vector>
