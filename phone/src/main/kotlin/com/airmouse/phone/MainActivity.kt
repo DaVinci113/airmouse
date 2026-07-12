@@ -146,14 +146,37 @@ class MainActivity : AppCompatActivity() {
 
     /** Подключение к устройству и старт sensor-fusion конвейера. */
     private fun connectTo(device: Device) {
-        connection.connect(device)
-        statusLabel.text = getString(R.string.status_connected_format, device.toString())
-        statusLabel.setTextColor(getColor(R.color.status_ok))
-        disconnectButton.visibility = android.view.View.VISIBLE
+        // Сначала проверяем реальную связь, чтобы не врать "Подключено".
+        statusLabel.text = getString(R.string.status_connecting, device.toString())
+        statusLabel.setTextColor(getColor(R.color.status_bad))
+        disconnectButton.visibility = android.view.View.GONE
 
-        startMotion()
-        pingChecker.start(connection, pingLabel)
-        Toast.makeText(this, device.toString(), Toast.LENGTH_SHORT).show()
+        connection.verifyConnect(device.host) { ok ->
+            runOnUiThread {
+                if (!ok) {
+                    // ТВ не ответил на PING — пакеты не ходят (AP isolation,
+                    // не та сеть, UDP-сервер не запущен и т.п.).
+                    connection.disconnect()
+                    statusLabel.text = getString(R.string.status_no_response, device.toString())
+                    statusLabel.setTextColor(getColor(R.color.status_bad))
+                    Toast.makeText(
+                        this,
+                        R.string.no_response_hint,
+                        Toast.LENGTH_LONG,
+                    ).show()
+                    return@runOnUiThread
+                }
+                // PONG пришёл — связь подтверждена.
+                connection.connect(device)
+                statusLabel.text = getString(R.string.status_connected_format, device.toString())
+                statusLabel.setTextColor(getColor(R.color.status_ok))
+                disconnectButton.visibility = android.view.View.VISIBLE
+
+                startMotion()
+                pingChecker.start(connection, pingLabel)
+                Toast.makeText(this, device.toString(), Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     /** Отключение от ТВ: останавливает сенсоры и пинг. */

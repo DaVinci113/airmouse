@@ -60,26 +60,39 @@ class MainActivity : AppCompatActivity() {
      *
      * На многих Android TV ACTION_ACCESSIBILITY_SETTINGS не открывается без
      * FLAG_ACTIVITY_NEW_TASK, а иногда ActivityNotFoundException падает молча.
-     * Поэтому: ставим флаг, а при ошибке пробуем fallback на общие настройки,
-     * и только если и они недоступны — показываем Toast.
+     * Поэтому: ставим флаг, а при ошибке пробуем fallback на общие настройки
+     * (с explicit ComponentName для штатного SettingsActivity), и только если
+     * и они недоступны — показываем Toast с путём.
      */
     private fun openAccessibilitySettings() {
-        val intents = listOf(
-            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
-            Intent(Settings.ACTION_SETTINGS),
-        )
+        val intents = buildList {
+            add(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            // Explicit intent на штатный SettingsActivity Android TV.
+            add(
+                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                    setClassName(
+                        "com.android.settings",
+                        "com.android.settings.Settings\$AccessibilitySettingsActivity",
+                    )
+                },
+            )
+            add(Intent(Settings.ACTION_SETTINGS))
+        }
         for (intent in intents) {
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            if (packageManager.resolveActivity(intent, 0) == null) continue
             try {
                 startActivity(intent)
                 return
             } catch (_: android.content.ActivityNotFoundException) {
                 // пробуем следующий вариант
+            } catch (_: SecurityException) {
+                // пробуем следующий вариант
             }
         }
         android.widget.Toast.makeText(
             this,
-            "Не удалось открыть настройки доступности. Откройте: Настройки → Система → Специальные возможности → Air Mouse",
+            getString(R.string.open_settings_failed),
             android.widget.Toast.LENGTH_LONG,
         ).show()
     }

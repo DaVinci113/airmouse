@@ -41,6 +41,9 @@ class AirMouseAccessibilityService : AccessibilityService() {
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    /** Логирует факт получения первого пакета (диагностика связи). */
+    private val firstPacketLogged = java.util.concurrent.atomic.AtomicBoolean(false)
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         try {
@@ -57,6 +60,7 @@ class AirMouseAccessibilityService : AccessibilityService() {
     }
 
     private fun initAll() {
+        firstPacketLogged.set(false)
         // Границы экрана из дефолтного дисплея.
         // Свойство AccessibilityService.display доступно только с API 34,
         // поэтому на старых устройствах используем DisplayManager напрямую.
@@ -125,6 +129,10 @@ class AirMouseAccessibilityService : AccessibilityService() {
      * (GestureExecutor делает это сам; для overlay используем mainHandler).
      */
     private fun handlePacket(packet: Packet) {
+        if (!firstPacketLogged.get()) {
+            firstPacketLogged.set(true)
+            Log.i(TAG, "First packet received: ${packet.type}")
+        }
         try {
             when (packet) {
             is Packet.Move -> {

@@ -13,6 +13,9 @@
     <string name="discovery_empty">ТВ не найдены. Проверьте, что оба устройства в одной сети и на ТВ запущен сервер.</string>
     <string name="status_disconnected">Не подключено</string>
     <string name="status_connected_format">Подключено: %1$s</string>
+    <string name="status_connecting">Подключение: %1$s…</string>
+    <string name="status_no_response">ТВ не отвечает: %1$s</string>
+    <string name="no_response_hint">Проверьте, что ТВ и телефон в одной сети, а на ТВ статус «Включена». Если оба на Wi-Fi — возможно, на роутере включена изоляция клиентов (AP isolation).</string>
     <string name="ping_format">Пинг: %1$d мс</string>
     <string name="ping_unknown">Пинг: —</string>
 

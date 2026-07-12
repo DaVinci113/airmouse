@@ -32,6 +32,44 @@ class Connection(private val transport: UdpTransport) {
     val isConnected: Boolean get() = device != null
     val host: String? get() = device?.host
 
+    /**
+     * Проверяет реальную доступность ТВ: шлёт PING и ждёт PONG.
+     * Возвращает true только если сервер реально ответил.
+     *
+     * Блокирующая операция — вызывать из рабочего потока, не из UI.
+     * Параметр [onResult] вызывается в вызывающем потоке.
+     */
+    fun verifyConnect(host: String, onResult: (Boolean) -> Unit) {
+        Thread {
+            val socket = transport.socket()
+            if (socket == null) {
+                onResult(false)
+                return@Thread
+            }
+            val stamp = System.nanoTime()
+            val ok = try {
+                transport.sendSync(host, Net.DEFAULT_PORT, Packet.Ping(stamp))
+                socket.soTimeout = VERIFY_TIMEOUT_MS
+                val buf = ByteArray(PacketCodec.MAX_PACKET_BYTES)
+                val incoming = DatagramPacket(buf, buf.size)
+                val deadline = System.currentTimeMillis() + VERIFY_TIMEOUT_MS
+                // Слушаем, пока не получим наш PONG или не выйдет таймаут.
+                while (System.currentTimeMillis() < deadline) {
+                    socket.receive(incoming)
+                    val packet = PacketCodec.decode(incoming.data.copyOfRange(0, incoming.length))
+                    if (packet is Packet.Pong && packet.clientNanos == stamp) {
+                        onResult(true)
+                        return@Thread
+                    }
+                    // чужой пакет — продолжаем ждать
+                }
+                onResult(false)
+            } catch (_: Throwable) {
+                onResult(false)
+            }
+        }.also { it.isDaemon = true }.start()
+    }
+
     /** Отключение: сбрасывает устройство, перестаёт отправлять пакеты. */
     fun disconnect() {
         device = null
@@ -98,5 +136,6 @@ class Connection(private val transport: UdpTransport) {
 
     private companion object {
         const val RTT_TIMEOUT_MS = 500
+        const val VERIFY_TIMEOUT_MS = 1000
     }
 }
