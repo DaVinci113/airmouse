@@ -43,8 +43,9 @@ class Discovery(private val transport: UdpTransport) {
                 return@Thread
             }
 
-            // Рассылаем DISCOVER.
-            transport.sendBroadcast(packet = Packet.Discover)
+            // Рассылаем DISCOVER синхронно (не через очередь диспетчера),
+            // иначе пакет может уйти уже ПОСЛЕ того, как мы начали слушать ответ.
+            transport.sendBroadcastSync(packet = Packet.Discover)
 
             // Слушаем ответы с таймаутом.
             socket.soTimeout = Net.DISCOVERY_TIMEOUT_MS.toInt()

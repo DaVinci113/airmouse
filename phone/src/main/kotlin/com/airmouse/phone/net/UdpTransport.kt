@@ -74,6 +74,30 @@ class UdpTransport {
     /** Сокет для приёма (DISCOVER-ответы, PONG). null, если не открыт. */
     fun socket(): DatagramSocket? = socket
 
+    /**
+     * Синхронная отправка пакета (минуя очередь диспетчера).
+     * Используется для discovery/ping, где критично, чтобы пакет ушёл
+     * НЕМЕДЛЕННО перед началом приёма ответа.
+     */
+    fun sendSync(host: String, port: Int = Net.DEFAULT_PORT, packet: Packet) {
+        val s = socket ?: return
+        try {
+            val data = PacketCodec.encode(packet)
+            val addr = InetAddress.getByName(host)
+            s.send(DatagramPacket(data, data.size, addr, port))
+        } catch (_: Throwable) { /* UDP */ }
+    }
+
+    /** Синхронная отправка broadcast (минуя очередь диспетчера). */
+    fun sendBroadcastSync(port: Int = Net.DEFAULT_PORT, packet: Packet) {
+        val s = socket ?: return
+        try {
+            val data = PacketCodec.encode(packet)
+            val addr = InetAddress.getByName(Net.BROADCAST_ADDRESS)
+            s.send(DatagramPacket(data, data.size, addr, port))
+        } catch (_: Throwable) { /* UDP */ }
+    }
+
     /** Отправляет [packet] по адресу [host]:[port]. */
     fun send(host: String, port: Int = Net.DEFAULT_PORT, packet: Packet) {
         val s = socket ?: return

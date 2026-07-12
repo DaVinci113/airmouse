@@ -7,6 +7,7 @@ import com.airmouse.proto.PacketCodec
 import java.net.DatagramPacket
 import java.net.DatagramSocket
 import java.net.InetAddress
+import java.net.StandardSocketOptions
 
 /**
  * UDP-сервер ТВ: слушает датаграммы от смартфона и передаёт декодированные
@@ -38,7 +39,13 @@ class UdpServer(
     fun start(): Boolean {
         if (running.get()) return true
         return try {
-            val s = DatagramSocket(Net.DEFAULT_PORT)
+            val s = DatagramSocket(null)
+            // SO_REUSEADDR: позволяет занять порт, даже если предыдущий сокет
+            // ещё в TIME_WAIT (после перезапуска службы). Без этого start()
+            // может вернуть false, а статус "включён" будет ложно-зелёным.
+            try { s.setOption(StandardSocketOptions.SO_REUSEADDR, true) } catch (_: Throwable) {}
+            s.reuseAddress = true
+            s.bind(java.net.InetSocketAddress(Net.DEFAULT_PORT))
             s.soTimeout = ACCEPT_TIMEOUT_MS
             socket = s
             running.set(true)

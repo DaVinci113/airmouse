@@ -69,7 +69,8 @@ class Connection(private val transport: UdpTransport) {
 
         Thread {
             val stamp = System.nanoTime()
-            transport.send(target.host, Net.DEFAULT_PORT, Packet.Ping(stamp))
+            // Синхронная отправка: PING должен уйти до того, как мы начнём слушать PONG.
+            transport.sendSync(target.host, Net.DEFAULT_PORT, Packet.Ping(stamp))
 
             socket.soTimeout = RTT_TIMEOUT_MS
             val buf = ByteArray(PacketCodec.MAX_PACKET_BYTES)
