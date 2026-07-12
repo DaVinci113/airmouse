@@ -106,20 +106,22 @@ class AirMouseAccessibilityService : AccessibilityService() {
      * (GestureExecutor делает это сам; для overlay используем mainHandler).
      */
     private fun handlePacket(packet: Packet) {
-        when (packet) {
+        try {
+            when (packet) {
             is Packet.Move -> {
                 val (nx, ny) = state.applyDelta(packet.dx, packet.dy)
                 gestures.updateFocus(nx, ny)
                 mainHandler.post { overlay.moveTo(nx.toInt(), ny.toInt()) }
             }
-            // ЛКМ = "OK" пульта: кликает по элементу в фокусе.
-            // dispatchGesture (тап по координатам) на Android TV ненадёжен —
-            // TV-приложения работают с D-pad навигацией, а не с касаниями экрана.
-            // performGlobalAction(DPAD_CENTER) срабатывает везде, где работает HOME.
-            is Packet.Tap -> performGlobalAction(GLOBAL_ACTION_DPAD_CENTER)
-            // ПКМ = длинное нажатие "OK": вызывает контекстное меню
-            // на элементе в фокусе (как долгое нажатие кнопки OK на пульте).
-            is Packet.LongPress -> gestures.longPressAtFocus()
+            // ЛКМ = эмуляция тапа по координатам курсора.
+            // performGlobalAction(DPAD_CENTER) существует только с API 34 —
+            // на большинстве Android TV (API 30-33) это крашит службу.
+            is Packet.Tap -> {
+                val (x, y) = state.current()
+                gestures.tap(x, y)
+            }
+            // ПКМ = длинное нажатие по координатам курсора.
+            is Packet.LongPress -> gestures.longPress(state.x, state.y)
             is Packet.Back -> performGlobalAction(GLOBAL_ACTION_BACK)
             is Packet.Home -> performGlobalAction(GLOBAL_ACTION_HOME)
             is Packet.Scroll -> {
@@ -131,18 +133,28 @@ class AirMouseAccessibilityService : AccessibilityService() {
                 gestures.updateFocus(nx, ny)
                 mainHandler.post { overlay.moveTo(nx.toInt(), ny.toInt()) }
             }
-            is Packet.DpadUp -> performGlobalAction(GLOBAL_ACTION_DPAD_UP)
-            is Packet.DpadDown -> performGlobalAction(GLOBAL_ACTION_DPAD_DOWN)
-            is Packet.DpadLeft -> performGlobalAction(GLOBAL_ACTION_DPAD_LEFT)
-            is Packet.DpadRight -> performGlobalAction(GLOBAL_ACTION_DPAD_RIGHT)
-            is Packet.DpadCenter -> performGlobalAction(GLOBAL_ACTION_DPAD_CENTER)
+            // D-pad: эмуляция стрелок пульта.
+            // GLOBAL_ACTION_DPAD_* существует только с API 34 (Android 14).
+            // Для совместимости с Android 10-13 используем KeyCode-ввод
+            // через AccessibilityService.performGlobalAction с BACK/HOME,
+            // а стрелки — через dispatchGesture (свайп в нужную сторону).
+            is Packet.DpadUp -> gestures.dpadSwipe(dy = -DPAD_SWIPE_PX)
+            is Packet.DpadDown -> gestures.dpadSwipe(dy = DPAD_SWIPE_PX)
+            is Packet.DpadLeft -> gestures.dpadSwipe(dx = -DPAD_SWIPE_PX)
+            is Packet.DpadRight -> gestures.dpadSwipe(dx = DPAD_SWIPE_PX)
+            is Packet.DpadCenter -> gestures.tap(state.x, state.y)
             is Packet.Discover, is Packet.Ping,
-            is Packet.Announce, is Packet.Pong -> Unit
+            is.Packet.Announce, is Packet.Pong -> Unit
+            }
+        } catch (e: Throwable) {
+            Log.e(TAG, "handlePacket error", e)
         }
     }
 
     companion object {
         private const val TAG = "AirMouse/Service"
+        /** Длина свайпа для D-pad стрелок в пикселях. */
+        private const val DPAD_SWIPE_PX = 100f
 
         @Volatile
         private var instance: AirMouseAccessibilityService? = null

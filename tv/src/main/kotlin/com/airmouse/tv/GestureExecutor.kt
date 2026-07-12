@@ -81,6 +81,15 @@ class GestureExecutor(private val service: AccessibilityService) {
         focusY = y
     }
 
+    /** Свайп для D-pad навигации (двигает фокус на один элемент). */
+    fun dpadSwipe(dx: Float = 0f, dy: Float = 0f) {
+        post {
+            dispatch(buildSwipePath(focusX, focusY, dx, dy), SCROLL_DURATION_MS) { ok ->
+                Log.d(TAG, String.format("dpadSwipe (%.0f,%.0f): %b", dx, dy, ok))
+            }
+        }
+    }
+
     /** Жест прокрутки на ([dx], [dy]) от текущей точки. */
     fun scroll(x: Float, y: Float, dx: Float, dy: Float) {
         post {
@@ -106,6 +115,11 @@ class GestureExecutor(private val service: AccessibilityService) {
         moveTo(x, y)
         // Ненулевая длина 1px: нулевой stroke некоторые прошивки отбрасывают.
         lineTo(x + 1f, y + 1f)
+    }
+
+    private fun buildSwipePath(x: Float, y: Float, dx: Float, dy: Float): Path = Path().apply {
+        moveTo(x, y)
+        lineTo(x + dx, y + dy)
     }
 
     private fun dispatch(path: Path, durationMs: Long, onResult: (Boolean) -> Unit) {
