@@ -75,7 +75,7 @@ class SettingsActivity : AppCompatActivity() {
         val bar = findViewById<SeekBar>(barId)
         val value = findViewById<TextView>(valueId)
         val storedAlpha = sp.getFloat(KEY_EMA_ALPHA, DEFAULT_EMA_ALPHA)
-        bar.progress = ((0.5f - storedAlpha) / 0.01f).toInt().coerceIn(0, 40)
+        bar.progress = ((0.5f - storedAlpha) / 0.01f).toInt().coerceIn(0, 45)
         val alpha = 0.5f - bar.progress * 0.01f
         value.text = getString(R.string.smoothing_format, alpha)
         bar.setOnSeekBarChangeListener(simpleListener {
@@ -86,7 +86,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     /**
-     * Мёртвая зона: SeekBar 0..50 → 0.00..0.05 рад/с с шагом 0.01.
+     * Мёртвая зона: SeekBar 0..150 → 0.00..0.15 рад/с с шагом 0.001.
      */
     private fun bindDeadzone(
         barId: Int, valueId: Int,
@@ -95,7 +95,8 @@ class SettingsActivity : AppCompatActivity() {
         val bar = findViewById<SeekBar>(barId)
         val value = findViewById<TextView>(valueId)
         val stored = sp.getFloat(KEY_DEADZONE, DEFAULT_DEADZONE)
-        bar.progress = (stored / 0.001f).toInt().coerceIn(0, 50)
+        bar.max = 150
+        bar.progress = (stored / 0.001f).toInt().coerceIn(0, 150)
         val dz = bar.progress * 0.001f
         value.text = getString(R.string.deadzone_format, dz)
         bar.setOnSeekBarChangeListener(simpleListener {

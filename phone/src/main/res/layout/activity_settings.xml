@@ -41,7 +41,7 @@
             android:id="@+id/smoothingBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="40" />
+            android:max="45" />
         <TextView android:id="@+id/smoothingValue"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginBottom="12dp" />
@@ -51,7 +51,7 @@
             android:id="@+id/deadzoneBar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:max="50" />
+            android:max="150" />
         <TextView android:id="@+id/deadzoneValue"
             android:layout_width="match_parent" android:layout_height="wrap_content"
             android:layout_marginBottom="24dp" />
