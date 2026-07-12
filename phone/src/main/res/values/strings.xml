@@ -7,6 +7,7 @@
     <string name="connection">Подключение</string>
     <string name="ip_hint">IP-адрес ТВ (например, 192.168.1.10)</string>
     <string name="connect_manual">Подключиться</string>
+    <string name="disconnect">Отключить</string>
     <string name="discover">Поиск ТВ</string>
     <string name="discovering">Поиск…</string>
     <string name="discovery_empty">ТВ не найдены. Проверьте, что оба устройства в одной сети и на ТВ запущен сервер.</string>

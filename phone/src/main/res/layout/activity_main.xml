@@ -66,6 +66,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/ping_unknown"
+            android:layout_marginBottom="8dp" />
+
+        <Button
+            android:id="@+id/disconnectButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/disconnect"
+            android:backgroundTint="@color/status_bad"
+            android:textColor="#FFFFFF"
+            android:visibility="gone"
             android:layout_marginBottom="16dp" />
 
         <View

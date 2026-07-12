@@ -32,6 +32,11 @@ class Connection(private val transport: UdpTransport) {
     val isConnected: Boolean get() = device != null
     val host: String? get() = device?.host
 
+    /** Отключение: сбрасывает устройство, перестаёт отправлять пакеты. */
+    fun disconnect() {
+        device = null
+    }
+
     fun move(dx: Float, dy: Float) =
         send(Packet.Move(dx, dy))
 

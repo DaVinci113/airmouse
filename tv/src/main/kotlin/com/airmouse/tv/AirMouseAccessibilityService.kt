@@ -46,10 +46,16 @@ class AirMouseAccessibilityService : AccessibilityService() {
         instance = this
 
         // Границы экрана из дефолтного дисплея.
+        // Свойство AccessibilityService.display доступно только с API 34,
+        // поэтому на старых устройствах используем DisplayManager напрямую.
         state = CursorState()
-        val dm = getSystemService(DISPLAY_SERVICE) as? DisplayManager
-        val display = display ?: dm?.getDisplay(Display.DEFAULT_DISPLAY)
-        display?.let { state.initFromDisplay(it) }
+        try {
+            val dm = getSystemService(DISPLAY_SERVICE) as? DisplayManager
+            val d = dm?.getDisplay(Display.DEFAULT_DISPLAY)
+            d?.let { state.initFromDisplay(it) }
+        } catch (e: Throwable) {
+            Log.w(TAG, "Cannot determine screen size: ${e.message}")
+        }
 
         overlay = CursorOverlay(applicationContext)
         gestures = GestureExecutor(this)

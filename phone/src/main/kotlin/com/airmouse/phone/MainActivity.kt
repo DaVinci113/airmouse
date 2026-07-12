@@ -43,6 +43,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var statusLabel: TextView
     private lateinit var pingLabel: TextView
     private lateinit var devicesContainer: LinearLayout
+    private lateinit var disconnectButton: Button
 
     private val pingChecker = PingChecker()
 
@@ -54,6 +55,7 @@ class MainActivity : AppCompatActivity() {
         statusLabel = findViewById(R.id.statusLabel)
         pingLabel = findViewById(R.id.pingLabel)
         devicesContainer = findViewById(R.id.devicesContainer)
+        disconnectButton = findViewById(R.id.disconnectButton)
 
         transport = UdpTransport()
         // Биндим локальный порт, чтобы принимать ANNOUNCE и PONG.
@@ -91,6 +93,10 @@ class MainActivity : AppCompatActivity() {
         findViewById<Button>(R.id.settingsButton).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        disconnectButton.setOnClickListener { disconnect() }
+        // Кнопка «Отключить» видна только при активном подключении.
+        disconnectButton.visibility = android.view.View.GONE
     }
 
     override fun onResume() {
@@ -136,10 +142,24 @@ class MainActivity : AppCompatActivity() {
         connection.connect(device)
         statusLabel.text = getString(R.string.status_connected_format, device.toString())
         statusLabel.setTextColor(getColor(R.color.status_ok))
+        disconnectButton.visibility = android.view.View.VISIBLE
 
         startMotion()
         pingChecker.start(connection, pingLabel)
         Toast.makeText(this, device.toString(), Toast.LENGTH_SHORT).show()
+    }
+
+    /** Отключение от ТВ: останавливает сенсоры и пинг. */
+    private fun disconnect() {
+        engine?.stop()
+        engine = null
+        pingChecker.stop()
+        connection.disconnect()
+        statusLabel.text = getString(R.string.status_disconnected)
+        statusLabel.setTextColor(getColor(R.color.status_bad))
+        pingLabel.text = getString(R.string.ping_unknown)
+        disconnectButton.visibility = android.view.View.GONE
+        Toast.makeText(this, R.string.status_disconnected, Toast.LENGTH_SHORT).show()
     }
 
     /** Создаёт/перезапускает MotionEngine. */

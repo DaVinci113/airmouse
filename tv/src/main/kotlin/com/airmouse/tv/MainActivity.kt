@@ -1,7 +1,6 @@
 package com.airmouse.tv
 
 import android.content.Intent
-import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,6 +9,8 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.airmouse.proto.Net
+import java.net.InetAddress
+import java.net.NetworkInterface
 
 /**
  * Главный экран ТВ-сервера.
@@ -88,23 +89,30 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * IPv4-адрес устройства из WifiManager. На ТВ с Ethernet это может вернуть
-     * 0.0.0.0; в таком случае пользователь увидит "определяется…" и сможет
-     * узнать IP из системных настроек сети.
+     * Локальный IPv4-адрес устройства через NetworkInterface.
+     * Работает и для Wi-Fi, и для Ethernet (который WifiManager не видит).
+     * Возвращает первый ненулевой IPv4-адрес, исключая loopback.
      */
-    @Suppress("DEPRECATION")
     private fun getLocalIpAddress(): String? {
         return try {
-            val wifi = applicationContext.getSystemService(WIFI_SERVICE) as? WifiManager
-            val ipInt = wifi?.connectionInfo?.ipAddress ?: 0
-            if (ipInt == 0) null
-            else String.format(
-                "%d.%d.%d.%d",
-                ipInt and 0xff,
-                (ipInt shr 8) and 0xff,
-                (ipInt shr 16) and 0xff,
-                (ipInt shr 24) and 0xff,
-            )
+            val interfaces = NetworkInterface.getNetworkInterfaces()
+            while (interfaces?.hasMoreElements() == true) {
+                val iface = interfaces.nextElement()
+                // Пропускаем loopback и отключённые интерфейсы.
+                if (iface.isLoopback || !iface.isUp) continue
+                val addresses = iface.inetAddresses
+                while (addresses.hasMoreElements()) {
+                    val addr = addresses.nextElement()
+                    // Берём только IPv4 и не loopback.
+                    if (addr is InetAddress && !addr.isLoopbackAddress) {
+                        val host = addr.hostAddress ?: continue
+                        // IPv6-адреса содержат ':', пропускаем.
+                        if (host.contains(":")) continue
+                        return host
+                    }
+                }
+            }
+            null
         } catch (_: Throwable) {
             null
         }
