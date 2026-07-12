@@ -10,28 +10,33 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 
 /**
- * Эмуляция касаний через AccessibilityService.dispatchGesture (API 24+).
+ * Эмуляция жестов через AccessibilityService.dispatchGesture (API 24+).
  *
- * Это единственный способ без Root «кликнуть» в произвольную точку экрана
- * поверх любого приложения на Android TV. dispatchGesture строит
- * [GestureDescription] из одного или нескольких [GestureDescription.StrokeDescription],
- * каждый из которых описывает траекторию (Path) и длительность.
+ * dispatchGesture строит [GestureDescription] из [GestureDescription.StrokeDescription],
+ * который описывает траекторию (Path) и длительность.
  *
- * Варианты:
- *  - [tap]      — короткое касание в точке (ЛКМ);
- *  - [longPress]— длинное нажатие (ПКМ / контекстное меню);
- *  - [scroll]   — жест-протяжка из точки в точку (скролл списков).
+ * ВАЖНО про Android TV: TV-приложения в основном используют D-pad навигацию
+ * (фокус), а не касания экрана. Поэтому:
+ *  - ЛКМ (тап) реализован через performGlobalAction(DPAD_CENTER) в AccessibilityService,
+ *    а не через dispatchGesture — это надёжно кликает по элементу в фокусе.
+ *  - Длинное нажатие (ПКМ) и скролл идут через dispatchGesture, т.к. для них нет
+ *    эквивалента в performGlobalAction. Они работают только в приложениях,
+ *    поддерживающих касания; результат логируется в logcat (AirMouse/Gesture).
  *
  * Особенности реализации:
- *  - TAP_DURATION_MS достаточно длинный (~150 мс), чтобы система гарантированно
- *    распознала тап; слишком короткие жесты (<100 мс) на части прошивок отбрасываются.
  *  - Stroke имеет небольшую ненулевую длину (1px): нулевой длины stroke
  *    некоторыми прошивками игнорируется.
+ *  - Все вызовы маршалируются на main поток (dispatchGesture требует его).
  */
 @RequiresApi(Build.VERSION_CODES.N)
 class GestureExecutor(private val service: AccessibilityService) {
 
     private val mainHandler = Handler(Looper.getMainLooper())
+
+    // Координаты курсора, обновляемые при MOVE. Используются для longPressAtFocus
+    // (для тапа используется GLOBAL_ACTION_DPAD_CENTER — надёжнее на Android TV).
+    @Volatile private var focusX: Float = 0f
+    @Volatile private var focusY: Float = 0f
 
     /** Короткий клик в точке ([x], [y]). */
     fun tap(x: Float, y: Float) {
@@ -49,6 +54,31 @@ class GestureExecutor(private val service: AccessibilityService) {
                 Log.d(TAG, String.format("longPress at (%.1f, %.1f): %b", x, y, ok))
             }
         }
+    }
+
+    /**
+     * Длинное нажатие "OK" для контекстного меню на элементе в фокусе.
+     *
+     * На Android TV нет performGlobalAction для долгого нажатия центра D-pad,
+     * поэтому эмулируем долгое нажатие через dispatchGesture в точке курсора.
+     * На части прошивок это сработает только если приложение поддерживает
+     * касания (не все TV-приложения это делают). Результат логируется.
+     */
+    fun longPressAtFocus() {
+        post {
+            // Точка курсора (обновляется через MOVE); если overlay не двигался —
+            // это центр экрана. Координаты фокуса D-pad недоступны без доступа
+            // к дереву окон, поэтому используем позицию курсора как приближение.
+            dispatch(buildPointPath(focusX, focusY), LONG_PRESS_DURATION_MS) { ok ->
+                Log.d(TAG, "longPressAtFocus: $ok")
+            }
+        }
+    }
+
+    /** Обновляет координаты точки для longPressAtFocus (из CursorState). */
+    fun updateFocus(x: Float, y: Float) {
+        focusX = x
+        focusY = y
     }
 
     /** Жест прокрутки на ([dx], [dy]) от текущей точки. */

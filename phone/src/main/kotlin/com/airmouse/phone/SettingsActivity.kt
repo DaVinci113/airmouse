@@ -122,8 +122,8 @@ class SettingsActivity : AppCompatActivity() {
         const val KEY_DEADZONE = "deadzone"
 
         const val DEFAULT_SENS = 800f
-        const val DEFAULT_EMA_ALPHA = 0.2f
-        const val DEFAULT_GRAVITY_ALPHA = 0.1f
-        const val DEFAULT_DEADZONE = 0.03f
+        const val DEFAULT_EMA_ALPHA = 0.1f
+        const val DEFAULT_GRAVITY_ALPHA = 0.05f
+        const val DEFAULT_DEADZONE = 0.05f
     }
 }

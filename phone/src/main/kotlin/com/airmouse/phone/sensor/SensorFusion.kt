@@ -80,16 +80,16 @@ class SensorFusion(config: FusionConfig = FusionConfig()) {
  * Настройки sensor fusion. Значения по умолчанию подобраны для типичного
  * air-mouse хвата и могут быть изменены пользователем в SettingsActivity.
  *
- * @param emaAlpha коэффициент EMA гироскопа (0.1..0.3)
+ * @param emaAlpha коэффициент EMA гироскопа (0.05..0.3, меньше = сильнее сглаживание)
  * @param gravityAlpha коэффициент EMA вектора гравитации (0.05..0.15)
- * @param deadzoneRad порог мёртвой зоны гироскопа, рад/с (~0.03)
+ * @param deadzoneRad порог мёртвой зоны гироскопа, рад/с (~0.05..0.1)
  * @param sensitivityX px на (рад/с · с) по горизонтали (~800)
  * @param sensitivityY px на (рад/с · с) по вертикали (~800)
  */
 data class FusionConfig(
-    var emaAlpha: Float = 0.2f,
-    var gravityAlpha: Float = 0.1f,
-    var deadzoneRad: Float = 0.03f,
+    var emaAlpha: Float = 0.1f,
+    var gravityAlpha: Float = 0.05f,
+    var deadzoneRad: Float = 0.05f,
     var sensitivityX: Float = 800f,
     var sensitivityY: Float = 800f,
 )

@@ -90,6 +90,13 @@ class MainActivity : AppCompatActivity() {
             connection.scroll(0f, -SCROLL_DELTA_PX)
         }
 
+        // D-pad: стрелки пульта (performGlobalAction на сервере).
+        findViewById<Button>(R.id.dpadUpButton).setOnClickListener { connection.dpadUp() }
+        findViewById<Button>(R.id.dpadDownButton).setOnClickListener { connection.dpadDown() }
+        findViewById<Button>(R.id.dpadLeftButton).setOnClickListener { connection.dpadLeft() }
+        findViewById<Button>(R.id.dpadRightButton).setOnClickListener { connection.dpadRight() }
+        findViewById<Button>(R.id.dpadCenterButton).setOnClickListener { connection.dpadCenter() }
+
         findViewById<Button>(R.id.settingsButton).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }

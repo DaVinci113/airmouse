@@ -62,6 +62,7 @@ class AirMouseAccessibilityService : AccessibilityService() {
         // не отрисует окно на некоторых прошивках Android TV.
         overlay = CursorOverlay(this)
         gestures = GestureExecutor(this)
+        gestures.updateFocus(state.x, state.y)
 
         // Responder создаётся с лямбдой, которая дёргает server?.socket.
         // К моменту первого вызова respondAnnounce/respondPong сервер уже
@@ -108,16 +109,17 @@ class AirMouseAccessibilityService : AccessibilityService() {
         when (packet) {
             is Packet.Move -> {
                 val (nx, ny) = state.applyDelta(packet.dx, packet.dy)
+                gestures.updateFocus(nx, ny)
                 mainHandler.post { overlay.moveTo(nx.toInt(), ny.toInt()) }
             }
-            is Packet.Tap -> {
-                val (x, y) = state.current()
-                gestures.tap(x, y)
-            }
-            is Packet.LongPress -> {
-                val (x, y) = state.current()
-                gestures.longPress(x, y)
-            }
+            // ЛКМ = "OK" пульта: кликает по элементу в фокусе.
+            // dispatchGesture (тап по координатам) на Android TV ненадёжен —
+            // TV-приложения работают с D-pad навигацией, а не с касаниями экрана.
+            // performGlobalAction(DPAD_CENTER) срабатывает везде, где работает HOME.
+            is Packet.Tap -> performGlobalAction(GLOBAL_ACTION_DPAD_CENTER)
+            // ПКМ = длинное нажатие "OK": вызывает контекстное меню
+            // на элементе в фокусе (как долгое нажатие кнопки OK на пульте).
+            is Packet.LongPress -> gestures.longPressAtFocus()
             is Packet.Back -> performGlobalAction(GLOBAL_ACTION_BACK)
             is Packet.Home -> performGlobalAction(GLOBAL_ACTION_HOME)
             is Packet.Scroll -> {
@@ -126,17 +128,14 @@ class AirMouseAccessibilityService : AccessibilityService() {
             }
             is Packet.Calibrate -> {
                 val (nx, ny) = state.recenter()
+                gestures.updateFocus(nx, ny)
                 mainHandler.post { overlay.moveTo(nx.toInt(), ny.toInt()) }
             }
-            // D-pad: эмуляция стрелок пульта через performGlobalAction.
-            // Это надёжнее dispatchGesture для навигации в TV-приложениях,
-            // т.к. работает везде, где работает HOME/BACK.
             is Packet.DpadUp -> performGlobalAction(GLOBAL_ACTION_DPAD_UP)
             is Packet.DpadDown -> performGlobalAction(GLOBAL_ACTION_DPAD_DOWN)
             is Packet.DpadLeft -> performGlobalAction(GLOBAL_ACTION_DPAD_LEFT)
             is Packet.DpadRight -> performGlobalAction(GLOBAL_ACTION_DPAD_RIGHT)
             is Packet.DpadCenter -> performGlobalAction(GLOBAL_ACTION_DPAD_CENTER)
-            // DISCOVER/PING обрабатываются DiscoveryResponder внутри UdpServer.
             is Packet.Discover, is Packet.Ping,
             is Packet.Announce, is Packet.Pong -> Unit
         }
