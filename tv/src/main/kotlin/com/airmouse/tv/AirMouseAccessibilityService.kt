@@ -144,7 +144,7 @@ class AirMouseAccessibilityService : AccessibilityService() {
             is Packet.DpadRight -> gestures.dpadSwipe(dx = DPAD_SWIPE_PX)
             is Packet.DpadCenter -> gestures.tap(state.x, state.y)
             is Packet.Discover, is Packet.Ping,
-            is.Packet.Announce, is Packet.Pong -> Unit
+            is Packet.Announce, is Packet.Pong -> Unit
             }
         } catch (e: Throwable) {
             Log.e(TAG, "handlePacket error", e)
