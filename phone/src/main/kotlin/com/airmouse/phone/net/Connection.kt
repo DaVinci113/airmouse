@@ -46,6 +46,11 @@ class Connection(private val transport: UdpTransport) {
     fun home() = send(Packet.Home)
     fun calibrate() = send(Packet.Calibrate)
     fun scroll(dx: Float, dy: Float) = send(Packet.Scroll(dx, dy))
+    fun dpadUp() = send(Packet.DpadUp)
+    fun dpadDown() = send(Packet.DpadDown)
+    fun dpadLeft() = send(Packet.DpadLeft)
+    fun dpadRight() = send(Packet.DpadRight)
+    fun dpadCenter() = send(Packet.DpadCenter)
 
     private fun send(packet: Packet) {
         val target = device ?: return

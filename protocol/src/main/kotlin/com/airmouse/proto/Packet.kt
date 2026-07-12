@@ -23,7 +23,12 @@ sealed class Packet {
         DISCOVER(0x08),
         ANNOUNCE(0x09),
         PING(0x0A),
-        PONG(0x0B);
+        PONG(0x0B),
+        DPAD_UP(0x0C),
+        DPAD_DOWN(0x0D),
+        DPAD_LEFT(0x0E),
+        DPAD_RIGHT(0x0F),
+        DPAD_CENTER(0x10);
 
         companion object {
             private val byCode = entries.associateBy { it.code }
@@ -59,6 +64,21 @@ sealed class Packet {
 
     /** Сброс курсора в центр экрана (компенсация накопленного дрейфа). */
     data object Calibrate : Packet() { override val type = Type.CALIBRATE }
+
+    /** Стрелка пульта "Вверх" (performGlobalAction DPAD_UP). */
+    data object DpadUp : Packet() { override val type = Type.DPAD_UP }
+
+    /** Стрелка пульта "Вниз" (performGlobalAction DPAD_DOWN). */
+    data object DpadDown : Packet() { override val type = Type.DPAD_DOWN }
+
+    /** Стрелка пульта "Влево" (performGlobalAction DPAD_LEFT). */
+    data object DpadLeft : Packet() { override val type = Type.DPAD_LEFT }
+
+    /** Стрелка пульта "Вправо" (performGlobalAction DPAD_RIGHT). */
+    data object DpadRight : Packet() { override val type = Type.DPAD_RIGHT }
+
+    /** Кнопка "ОК" пульта (performGlobalAction DPAD_CENTER). */
+    data object DpadCenter : Packet() { override val type = Type.DPAD_CENTER }
 
     // --- Обнаружение ---
 

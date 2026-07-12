@@ -57,7 +57,10 @@ class AirMouseAccessibilityService : AccessibilityService() {
             Log.w(TAG, "Cannot determine screen size: ${e.message}")
         }
 
-        overlay = CursorOverlay(applicationContext)
+        // Контекст сервиса (this) — не applicationContext: для TYPE_ACCESSIBILITY_OVERLAY
+        // нужен WindowManager, привязанный к дисплею сервиса, иначе addView молча
+        // не отрисует окно на некоторых прошивках Android TV.
+        overlay = CursorOverlay(this)
         gestures = GestureExecutor(this)
 
         // Responder создаётся с лямбдой, которая дёргает server?.socket.
@@ -97,8 +100,9 @@ class AirMouseAccessibilityService : AccessibilityService() {
     }
 
     /**
-     * Маршрутизация пакетов → действия. Вызывается в сетевом потоке UdpServer,
-     * поэтому всё, что трогает UI/overlay/dispatchGesture, оборачиваем в post.
+     * Маршрутизация пакетов → действия. Вызывается в сетевом потоке UdpServer.
+     * Overlay-операции и dispatchGesture маршалируются на main поток
+     * (GestureExecutor делает это сам; для overlay используем mainHandler).
      */
     private fun handlePacket(packet: Packet) {
         when (packet) {
@@ -108,22 +112,30 @@ class AirMouseAccessibilityService : AccessibilityService() {
             }
             is Packet.Tap -> {
                 val (x, y) = state.current()
-                mainHandler.post { gestures.tap(x, y) }
+                gestures.tap(x, y)
             }
             is Packet.LongPress -> {
                 val (x, y) = state.current()
-                mainHandler.post { gestures.longPress(x, y) }
+                gestures.longPress(x, y)
             }
             is Packet.Back -> performGlobalAction(GLOBAL_ACTION_BACK)
             is Packet.Home -> performGlobalAction(GLOBAL_ACTION_HOME)
             is Packet.Scroll -> {
                 val (x, y) = state.current()
-                mainHandler.post { gestures.scroll(x, y, packet.dx, packet.dy) }
+                gestures.scroll(x, y, packet.dx, packet.dy)
             }
             is Packet.Calibrate -> {
                 val (nx, ny) = state.recenter()
                 mainHandler.post { overlay.moveTo(nx.toInt(), ny.toInt()) }
             }
+            // D-pad: эмуляция стрелок пульта через performGlobalAction.
+            // Это надёжнее dispatchGesture для навигации в TV-приложениях,
+            // т.к. работает везде, где работает HOME/BACK.
+            is Packet.DpadUp -> performGlobalAction(GLOBAL_ACTION_DPAD_UP)
+            is Packet.DpadDown -> performGlobalAction(GLOBAL_ACTION_DPAD_DOWN)
+            is Packet.DpadLeft -> performGlobalAction(GLOBAL_ACTION_DPAD_LEFT)
+            is Packet.DpadRight -> performGlobalAction(GLOBAL_ACTION_DPAD_RIGHT)
+            is Packet.DpadCenter -> performGlobalAction(GLOBAL_ACTION_DPAD_CENTER)
             // DISCOVER/PING обрабатываются DiscoveryResponder внутри UdpServer.
             is Packet.Discover, is Packet.Ping,
             is Packet.Announce, is Packet.Pong -> Unit

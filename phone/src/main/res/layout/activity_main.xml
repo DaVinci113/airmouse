@@ -95,6 +95,82 @@
             android:layout_marginTop="16dp"
             android:keepScreenOn="true" />
 
+        <!-- D-pad: крестовина стрелок как на пульте -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/dpad_title"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="8dp" />
+
+        <GridLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:columnCount="3"
+            android:rowCount="3"
+            android:useDefaultMargins="true">
+
+            <!-- Пустая ячейка -->
+            <View
+                android:layout_width="56dp"
+                android:layout_height="56dp" />
+
+            <Button
+                android:id="@+id/dpadUpButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="@string/dpad_up"
+                android:textSize="22sp"
+                android:padding="0dp" />
+
+            <View
+                android:layout_width="56dp"
+                android:layout_height="56dp" />
+
+            <Button
+                android:id="@+id/dpadLeftButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="@string/dpad_left"
+                android:textSize="22sp"
+                android:padding="0dp" />
+
+            <Button
+                android:id="@+id/dpadCenterButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="@string/dpad_center"
+                android:textSize="12sp"
+                android:padding="0dp" />
+
+            <Button
+                android:id="@+id/dpadRightButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="@string/dpad_right"
+                android:textSize="22sp"
+                android:padding="0dp" />
+
+            <View
+                android:layout_width="56dp"
+                android:layout_height="56dp" />
+
+            <Button
+                android:id="@+id/dpadDownButton"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:text="@string/dpad_down"
+                android:textSize="22sp"
+                android:padding="0dp" />
+
+            <View
+                android:layout_width="56dp"
+                android:layout_height="56dp" />
+        </GridLayout>
+
         <!-- Кнопки управления -->
         <GridLayout
             android:layout_width="match_parent"

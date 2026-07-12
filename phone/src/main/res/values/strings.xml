@@ -27,6 +27,14 @@
     <string name="recenter">Сброс центра</string>
     <string name="settings">Настройки</string>
 
+    <!-- D-pad (стрелки пульта) -->
+    <string name="dpad_title">Стрелки</string>
+    <string name="dpad_up">↑</string>
+    <string name="dpad_down">↓</string>
+    <string name="dpad_left">←</string>
+    <string name="dpad_right">→</string>
+    <string name="dpad_center">OK</string>
+
     <!-- Настройки sensor fusion -->
     <string name="settings_hint">Подстройте математику курсора под свою руку. Изменения применяются при возврате на главный экран.</string>
     <string name="setting_sensitivity_x">Чувствительность по горизонтали</string>

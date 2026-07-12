@@ -50,7 +50,9 @@ object PacketCodec {
             is Packet.Pong -> buf.putLong(packet.clientNanos)
             // Пакеты без payload.
             Packet.Tap, Packet.LongPress, Packet.Back,
-            Packet.Home, Packet.Calibrate, Packet.Discover -> Unit
+            Packet.Home, Packet.Calibrate, Packet.Discover,
+            Packet.DpadUp, Packet.DpadDown, Packet.DpadLeft,
+            Packet.DpadRight, Packet.DpadCenter -> Unit
         }
     }
 
@@ -90,5 +92,10 @@ object PacketCodec {
         }
         Packet.Type.PING -> Packet.Ping(buf.getLong())
         Packet.Type.PONG -> Packet.Pong(buf.getLong())
+        Packet.Type.DPAD_UP -> Packet.DpadUp
+        Packet.Type.DPAD_DOWN -> Packet.DpadDown
+        Packet.Type.DPAD_LEFT -> Packet.DpadLeft
+        Packet.Type.DPAD_RIGHT -> Packet.DpadRight
+        Packet.Type.DPAD_CENTER -> Packet.DpadCenter
     }
 }
