@@ -43,8 +43,20 @@ class AirMouseAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
-        instance = this
+        try {
+            initAll()
+        } catch (e: Throwable) {
+            Log.e(TAG, "onServiceConnected failed", e)
+            // Очищаем состояние, чтобы UI не показывал "Включена"
+            isUdpRunning = false
+            instance = null
+            server?.stop()
+            server = null
+            try { if (this::overlay.isInitialized) overlay.hide() } catch (_: Throwable) {}
+        }
+    }
 
+    private fun initAll() {
         // Границы экрана из дефолтного дисплея.
         // Свойство AccessibilityService.display доступно только с API 34,
         // поэтому на старых устройствах используем DisplayManager напрямую.
@@ -79,10 +91,16 @@ class AirMouseAccessibilityService : AccessibilityService() {
         )
 
         if (server!!.start()) {
+            // instance ставим ТОЛЬКО после успешного старта UDP —
+            // иначе UI будет врать "Включена" при мёртвом сервере.
+            instance = this
+            isUdpRunning = true
             mainHandler.post { overlay.show(state.x.toInt(), state.y.toInt()) }
             Log.i(TAG, "Air Mouse connected, port ${Net.DEFAULT_PORT}, screen ${state.width}x${state.height}")
         } else {
             Log.e(TAG, "Failed to start UDP server")
+            server?.stop()
+            server = null
         }
     }
 
@@ -93,6 +111,7 @@ class AirMouseAccessibilityService : AccessibilityService() {
     }
 
     override fun onUnbind(intent: android.content.Intent?): Boolean {
+        isUdpRunning = false
         instance = null
         server?.stop()
         server = null
@@ -158,11 +177,16 @@ class AirMouseAccessibilityService : AccessibilityService() {
 
         @Volatile
         private var instance: AirMouseAccessibilityService? = null
+        @Volatile
+        private var isUdpRunning = false
 
         /** Текущий экземпляр сервиса или null, если служба выключена. */
         fun get(): AirMouseAccessibilityService? = instance
 
         /** Признак, что служба доступности включена пользователем. */
         fun isEnabled(): Boolean = instance != null
+
+        /** Признак, что UDP-сервер реально принимает пакеты. */
+        fun isServerRunning(): Boolean = isUdpRunning
     }
 }

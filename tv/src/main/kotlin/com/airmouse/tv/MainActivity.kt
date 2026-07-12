@@ -49,11 +49,39 @@ class MainActivity : AppCompatActivity() {
         listeningLabel = findViewById(R.id.listeningLabel)
 
         findViewById<Button>(R.id.enableServiceButton).setOnClickListener {
-            // Открывает системные настройки доступности (пользователь включает службу вручную).
-            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            openAccessibilitySettings()
         }
 
         showNetworkInfo()
+    }
+
+    /**
+     * Открывает системные настройки доступности.
+     *
+     * На многих Android TV ACTION_ACCESSIBILITY_SETTINGS не открывается без
+     * FLAG_ACTIVITY_NEW_TASK, а иногда ActivityNotFoundException падает молча.
+     * Поэтому: ставим флаг, а при ошибке пробуем fallback на общие настройки,
+     * и только если и они недоступны — показываем Toast.
+     */
+    private fun openAccessibilitySettings() {
+        val intents = listOf(
+            Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS),
+            Intent(Settings.ACTION_SETTINGS),
+        )
+        for (intent in intents) {
+            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            try {
+                startActivity(intent)
+                return
+            } catch (_: android.content.ActivityNotFoundException) {
+                // пробуем следующий вариант
+            }
+        }
+        android.widget.Toast.makeText(
+            this,
+            "Не удалось открыть настройки доступности. Откройте: Настройки → Система → Специальные возможности → Air Mouse",
+            android.widget.Toast.LENGTH_LONG,
+        ).show()
     }
 
     override fun onResume() {
@@ -68,12 +96,20 @@ class MainActivity : AppCompatActivity() {
 
     /** Обновляет подпись статуса службы доступности. */
     private fun updateServiceStatus() {
-        if (AirMouseAccessibilityService.isEnabled()) {
-            serviceStatusLabel.text = getString(R.string.service_on)
-            serviceStatusLabel.setTextColor(getColor(R.color.status_ok))
-        } else {
-            serviceStatusLabel.text = getString(R.string.service_off)
-            serviceStatusLabel.setTextColor(getColor(R.color.status_bad))
+        when {
+            !AirMouseAccessibilityService.isEnabled() -> {
+                serviceStatusLabel.text = getString(R.string.service_off)
+                serviceStatusLabel.setTextColor(getColor(R.color.status_bad))
+            }
+            AirMouseAccessibilityService.isServerRunning() -> {
+                serviceStatusLabel.text = getString(R.string.service_on)
+                serviceStatusLabel.setTextColor(getColor(R.color.status_ok))
+            }
+            else -> {
+                // Служба включена, но UDP мёртв (порт занят/краш при старте).
+                serviceStatusLabel.text = getString(R.string.service_on_udp_dead, Net.DEFAULT_PORT)
+                serviceStatusLabel.setTextColor(getColor(R.color.status_bad))
+            }
         }
     }
 

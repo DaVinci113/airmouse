@@ -6,6 +6,7 @@
     <string name="service_status">Служба доступности</string>
     <string name="service_off">Выключена — Air Mouse не работает</string>
     <string name="service_on">Включена — приём команд активен</string>
+    <string name="service_on_udp_dead">Включена, но UDP-сервер не запущен (порт %1$d занят?). Перезапустите службу</string>
     <string name="enable_service">Включить службу</string>
     <string name="network_info">Сеть</string>
     <string name="ip_unknown">IP-адрес: определяется…</string>
