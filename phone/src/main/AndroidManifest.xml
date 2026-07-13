@@ -4,6 +4,14 @@
     <!-- Для потоковой передачи координат курсора по UDP. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Чтобы Wi-Fi чип не фильтровал входящие broadcast (ответы discovery). -->
+    <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
+
+    <!-- Держит Wi-Fi в активном режиме (без power-save) во время работы приложения. -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"

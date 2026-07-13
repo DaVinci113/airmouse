@@ -125,7 +125,7 @@ class MainActivity : AppCompatActivity() {
         val hint = TextView(this).apply { text = getString(R.string.discovering) }
         devicesContainer.addView(hint)
 
-        Discovery(transport).discover { devices ->
+        Discovery(this, transport).discover { devices ->
             runOnUiThread {
                 devicesContainer.removeAllViews()
                 if (devices.isEmpty()) {
